@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Flutter Web QR Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+<script>
+    function startQrScanner(callback) {
+   const scannerDivId = "qr-reader";
+   let qrRegion = document.getElementById(scannerDivId);
+
+   if (!qrRegion) {
+     qrRegion = document.createElement("div");
+     qrRegion.id = scannerDivId;
+     document.body.appendChild(qrRegion);
+   }
+
+   qrRegion.style.position = 'relative';
+   qrRegion.style.width = '300px';
+   qrRegion.style.height = '300px';
+   qrRegion.style.overflow = 'hidden';
+   qrRegion.style.margin = '200px auto 0';
+
+   const html5QrCode = new Html5Qrcode(scannerDivId);
+   window._scanner = html5QrCode; // نحفظه في window
+
+   const config = { fps: 10, qrbox: 250 };
+
+   html5QrCode.start(
+     { facingMode: "environment" },
+     config,
+     (decodedText, decodedResult) => {
+       callback(decodedText);
+       html5QrCode.stop();
+     },
+     (error) => {
+       // تجاهل الأخطاء
+     }
+   ).then(() => {
+     const videoElem = qrRegion.querySelector("video");
+     if (videoElem) {
+       videoElem.style.objectFit = "cover";
+       videoElem.style.width = "300px";
+       videoElem.style.height = "300px";
+       videoElem.style.position = "absolute";
+       videoElem.style.top = "0";
+       videoElem.style.left = "0";
+     }
+   }).catch(err => {
+     console.error(err);
+   });
+ }
+
+ // دالة جديدة: توقف السكانر وتحيد العنصر من DOM
+ function stopQrScanner() {
+   if (window._scanner) {
+     window._scanner.stop().then(() => {
+       const qrRegion = document.getElementById("qr-reader");
+       if (qrRegion) {
+         qrRegion.remove(); // نحيد العنصر من DOM
+       }
+       window._scanner = null;
+     }).catch(err => {
+       console.error("Erreur lors de l'arrêt du scanner", err);
+     });
+   }
+ }
+
+</script>
+<script src="main.dart.js"></script>
+</body>
+</html>
